@@ -1,44 +1,42 @@
-import tensorflow as tf
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Dense, LSTM, Conv1D, Attention, Bidirectional, Dropout, GlobalMaxPooling1D
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.losses import Huber
+import torch
+import torch.nn as nn
 
-def build_cnn_lstm_han_model(input_shape, learning_rate=0.0005):
+class HybridModel(nn.Module):
     """
-    Build the hybrid CNN-LSTM model with Hierarchical Attention Networks.
-    
-    Args:
-        input_shape: Shape of input data (sequence_length, features)
-        learning_rate: Learning rate for optimizer
-        
-    Returns:
-        Compiled Keras model
+    CNN + BiLSTM + Attention architecture
+    Identical logic to final.py model
     """
-    inp = Input(shape=input_shape, name='price_input')
-    
-    # CNN layer for feature extraction
-    x = Conv1D(32, kernel_size=3, activation='relu')(inp)
-    
-    # Bidirectional LSTM with Attention
-    x = Bidirectional(LSTM(64, return_sequences=True))(x)
-    att = Attention()([x, x])
-    x = GlobalMaxPooling1D()(att)
-    
-    # Dense layers
-    x = Dense(64, activation='relu')(x)
-    x = Dropout(0.3)(x)
-    x = Dense(32, activation='relu')(x)
-    x = Dropout(0.2)(x)
-    
-    # Output layer
-    out = Dense(1, activation='linear')(x)
-    
-    model = Model(inputs=inp, outputs=out)
-    model.compile(
-        optimizer=Adam(learning_rate=learning_rate, clipvalue=1.0),
-        loss=Huber(),
-        metrics=['mae']
-    )
-    
-    return model
+
+    def __init__(self, input_dim):
+        super().__init__()
+
+        self.conv = nn.Conv1d(input_dim, 32, kernel_size=3)
+        self.lstm = nn.LSTM(32, 64, batch_first=True, bidirectional=True)
+
+        self.attn = nn.Linear(128, 1)
+
+        self.fc = nn.Sequential(
+            nn.Linear(128, 64),
+            nn.ReLU(),
+            nn.Dropout(0.3),
+            nn.Linear(64, 32),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(32, 1)
+        )
+
+    def forward(self, x):
+        x = x.permute(0, 2, 1)
+        x = torch.relu(self.conv(x))
+        x = x.permute(0, 2, 1)
+
+        x, _ = self.lstm(x)
+
+        attn_weights = torch.softmax(self.attn(x), dim=1)
+        x = (x * attn_weights).sum(dim=1)
+
+        return self.fc(x).squeeze()
+
+
+def build_model(input_dim):
+    return HybridModel(input_dim)
