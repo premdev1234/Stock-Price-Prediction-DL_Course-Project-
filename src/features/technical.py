@@ -1,41 +1,31 @@
 import numpy as np
 import pandas as pd
 
-def calculate_technical_indicators(df, price_col='Close'):
-    """
-    Calculate technical indicators for stock data.
-    
-    Args:
-        df: DataFrame with stock price data
-        price_col: Column name for price data
-        
-    Returns:
-        DataFrame with added technical indicators
-    """
-    # Moving Averages
-    df['MA5'] = df[price_col].rolling(window=5).mean()
-    df['MA10'] = df[price_col].rolling(window=10).mean()
-    
-    # Returns
-    df['Returns'] = df[price_col].pct_change()
-    
-    # Volatility
-    df['Volatility'] = df['Returns'].rolling(window=5).std()
-    
-    # RSI (Relative Strength Index)
-    df['RSI'] = 100 - (100 / (1 + df['Returns'].rolling(window=14).mean() / 
-                                df['Returns'].rolling(window=14).std()))
-    
-    # OBV (On-Balance Volume)
+def calculate_technical_indicators(df):
+
+    df['Returns'] = df['Close'].pct_change()
+
+    df['MA5'] = df['Close'].rolling(5).mean()
+    df['MA10'] = df['Close'].rolling(10).mean()
+
+    df['Volatility'] = df['Returns'].rolling(5).std()
+
+    df['RSI'] = 100 - (
+        100 / (1 +
+        df['Returns'].rolling(14).mean() /
+        df['Returns'].rolling(14).std())
+    )
+
     df['OBV'] = (np.sign(df['Returns']) * df['Volume']).cumsum()
-    
-    # Bollinger Bands
-    df['SMA_20'] = df[price_col].rolling(window=20).mean()
-    df['STD_20'] = df[price_col].rolling(window=20).std()
+
+    # Correct Bollinger Bands using Close price
+    df['SMA_20'] = df['Close'].rolling(window=20).mean()
+    df['STD_20'] = df['Close'].rolling(window=20).std()
+
     df['Bollinger_Upper'] = df['SMA_20'] + (df['STD_20'] * 2)
     df['Bollinger_Lower'] = df['SMA_20'] - (df['STD_20'] * 2)
-    
-    # Clean up NaN values from rolling calculations
+
+    df.ffill(inplace=True)
     df.dropna(inplace=True)
-    
+
     return df
