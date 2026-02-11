@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>stock prediction</title>
+  <meta name="description"
+    content="PhishGuard – AI and Deep Learning-Based Email Phishing Detection System using GloVe BiLSTM, Word2Vec BiLSTM, and DistilBERT models." />
+
+  <!-- Tailwind & Papaparse -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <style>
+    /* ---------- THEME ---------- */
+    body {
+      background: linear-gradient(135deg, #f9fafb, #f0f7ff);
+      color: #1e293b;
+    }
+
+    .main-bg {
+      background-color: rgb(51, 177, 145);
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+      transition: all 0.2s ease;
+    }
+
+    .card:hover {
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .accent {
+      color: #00bfa6;
+    }
+
+    .primary {
+      background: linear-gradient(90deg, #00b4d8, #4361ee);
+      color: white;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .primary:hover {
+      background: linear-gradient(90deg, #0096c7, #3730a3);
+      box-shadow: 0 0 10px rgba(0, 180, 216, 0.3);
+    }
+
+    .badge-phish {
+      background: #ff3b3b;
+      color: #fff;
+      box-shadow: 0 0 6px rgba(255, 59, 59, 0.3);
+    }
+
+    .badge-safe {
+      background: #22c55e;
+      color: #fff;
+      box-shadow: 0 0 6px rgba(34, 197, 94, 0.3);
+    }
+
+    .token {
+      background: rgba(255, 196, 0, 0.18);
+      border-radius: 4px;
+      padding: 0 0.15rem;
+    }
+
+    .section-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #1e293b;
+      border-left: 5px solid #00b4d8;
+      padding-left: 10px;
+      margin-bottom: 10px;
+    }
+
+    .tab {
+      cursor: pointer;
+      padding: 8px 14px;
+      border-radius: 8px;
+      color: #334155;
+      background: #f8fafc;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .tab:hover {
+      background: #e0f7fa;
+    }
+
+    .tab-active {
+      background: linear-gradient(90deg, #00b4d8, #4361ee);
+      color: white;
+      border: none;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.2);
+    }
+
+    input,
+    textarea {
+      background: #f9fafb;
+      border: 1px solid #dbeafe;
+      transition: border 0.15s ease;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: #00b4d8;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(0, 180, 216, 0.2);
+    }
+
+    table thead {
+      background: #e0f2fe;
+      color: #1e3a8a;
+    }
+
+    table tbody tr:nth-child(even) {
+      background: #f9fafb;
+    }
+
+    footer {
+      background: #f8fafc;
+      color: #475569;
+      border-top: 1px solid #e2e8f0;
+      padding: 12px 0;
+    }
+  </style>
+</head>
+
+<body class="bg-[url('static/bg.jpeg')] bg-cover bg-no-repeat text-slate-800 font-sans min-h-screen">
+  <!-- HEADER -->
+  <header class="bg-[url('static/header_bg.jpeg')] bg-cover bg-no-repeat">
+    <div class="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
+
+      <!-- LEFT SIDE -->
+      <div class="flex items-center gap-2">
+        <img src="{{ url_for('static', filename='default_avatar.png') }}" alt="Default Avatar"
+          class="h-15 w-12 rounded-full">
+
+        <h1 class="text-xl font-semibold text-white leading-tight">
+          Scalable Stock Forecasting System
+        </h1>
+      </div>
+
+      <!-- RIGHT SIDE -->
+      <div class="flex items-center">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Project Logo" class="h-12">
+      </div>
+
+    </div>
+  </header>
+
+
+
+
+
+
+  <!-- MAIN CONTENT -->
+  <main class="max-w-6xl mx-auto p-6 space-y-6 main-bg">
+
+
+    <!-- OVERVIEW -->
+    <section class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-6 shadow-lg">
+
+      <!-- subtle glow -->
+      <div class="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 blur-2xl"></div>
+
+      <div class="relative">
+        <h2 class="mb-3 text-lg font-semibold text-white flex items-center gap-2">
+          📊 Project Overview
+        </h2>
+
+        <p class="text-slate-300 text-sm leading-relaxed">
+          The stock market can grow your money — or drain it just as fast.
+          Prices move not only on numbers, but also on <span class="text-white font-medium">news, emotions, fear, and
+            hype</span>.
+          No model, human or machine, can predict the market with 100% certainty.
+        </p>
+
+        <p class="mt-3 text-slate-400 text-sm leading-relaxed">
+          This project explores how <span class="text-white">data and AI assist decision-making</span>, not replace it.
+          By combining historical price trends with market sentiment, the system delivers
+          <span class="text-white">probability-based insights</span> — never guarantees.
+        </p>
+
+        <!-- caution box -->
+        <div class="mt-4 rounded-xl border border-yellow-400/30 bg-yellow-400/10 p-3">
+          <p class="text-yellow-300 text-xs font-medium">
+            ⚠️ Predictions are guidance, not financial advice.<br>
+            Profits are never assured. Losses are real.<br>
+            Invest only what you’re prepared to lose.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TABS -->
+    <div class="flex gap-3">
+      <div id="tab-single" class="tab tab-active rounded-md text-sm">Single News</div>
+      <div id="tab-batch" class="tab rounded-md text-sm">Batch CSV</div>
+    </div>
+
+    <!-- PANELS -->
+    <section id="tabs-content" class="space-y-6">
+
+      <!-- SINGLE NEWS -->
+      <div id="panel-single" class="p-5 rounded-2xl card">
+        <h3 class="section-title">Single News Prediction</h3>
+
+        <div class="space-y-3"> <input id="date" type="date" class="w-full p-3 rounded border border-gray-200" />
+          <textarea id="news_heading" rows="6" class="w-full p-3 rounded border border-gray-200"
+            placeholder="News content or headline"></textarea>
+          <div class="flex items-center gap-3"> <button id="predictBtn" class="px-4 py-2 rounded primary font-semibold">
+              Predict </button> </div>
+        </div>
+        <div id="recentContainer" class="mt-4 hidden">
+          <h3 class="section-title">Recent Predictions</h3>
+
+          <div id="recentList" class="max-h-64 overflow-y-auto border rounded bg-white p-2">
+          </div>
+
+          <div class="flex gap-2 mt-2">
+            <button id="prevBtn" class="px-2 py-1 border rounded">Prev</button>
+            <button id="nextBtn" class="px-2 py-1 border rounded">Next</button>
+          </div>
+        </div>
+      </div>
+      <!-- PREDICTION CARD -->
+      <div id="predictionCard" class="hidden p-5 rounded-2xl card">
+        <div class="flex items-start gap-4">
+          <!-- to be done later -->
+        </div>
+      </div>
+
+      <!-- BATCH PANEL -->
+      <div id="panel-batch" class="hidden p-5 rounded-2xl card">
+        <h3 class="section-title">📊 Batch CSV Prediction</h3>
+
+        <div class="space-y-3">
+          <div class="flex items-center gap-3">
+            <input id="csvFile" type="file" accept=".csv" class="text-sm" />
+            <button id="runBatch" class="px-3 py-2 rounded primary font-semibold">Run Batch</button>
+            <div class="ml-auto text-sm text-slate-600">CSV: date , heading</div>
+          </div>
+          <div id="batchProgress" class="mt-2 text-sm text-slate-600">No batch running.</div>
+          <div class="overflow-auto max-h-96 border rounded bg-white">
+            <table id="resultsTable" class="w-full text-sm table-auto">
+              <thead class="text-slate-600 text-xs bg-gray-50 sticky top-0">
+                <tr>
+                  <th class="p-2">#</th>
+                  <th>Headlines</th>
+                  <th>Time</th>
+                  <th>Description</th>
+                  <th>Predicted Price</th>
+                </tr>
+              </thead>
+              <tbody id="resultsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="mt-10 border-t border-slate-200 bg-white/70 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-6 py-4 text-center text-s text-slate-600">
+      <p>
+        Built with ❤️ by
+        <span class="font-medium text-slate-700">AIYUGA BHARAT</span>
+        ·
+        <a href="mailto:aiyugabharat@aiyugabharat.com" class="text-blue-600 hover:underline">
+          Creator
+        </a>
+      </p>
+    </div>
+  </footer>
+
+
+  <script>
+    // ---------- Utility Helpers ----------
+    const el = id => document.getElementById(id);
+
+    const escapeHtml = s =>
+      String(s || '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[c]);
+
+    // ---------- DOM References ----------
+    const tabSingle = el('tab-single');
+    const tabBatch = el('tab-batch');
+
+    const panelSingle = el('panel-single');
+    const panelBatch = el('panel-batch');
+
+    const predictBtn = el('predictBtn');
+    const runBatch = el('runBatch');
+
+    const csvFile = el('csvFile');
+    const resultsBody = el('resultsBody');
+    const batchProgress = el('batchProgress');
+
+    const dateInput = el('date');
+    const headlineInput = el('news_heading');
+
+    let currentOffset = 0;
+    const pageSize = 5;
+
+    const recentContainer = el('recentContainer');
+    const recentList = el('recentList');
+    const prevBtn = el('prevBtn');
+    const nextBtn = el('nextBtn');
+
+    // ---------- Tab Switching ----------
+    if (tabSingle && tabBatch) {
+      tabSingle.onclick = () => {
+        tabSingle.classList.add('tab-active');
+        tabBatch.classList.remove('tab-active');
+
+        panelSingle.classList.remove('hidden');
+        panelBatch.classList.add('hidden');
+      };
+
+      tabBatch.onclick = () => {
+        tabBatch.classList.add('tab-active');
+        tabSingle.classList.remove('tab-active');
+
+        panelBatch.classList.remove('hidden');
+        panelSingle.classList.add('hidden');
+      };
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (tabSingle) tabSingle.click();
+    });
+
+    // ---------- API CALL ----------
+    async function callPredictAPI(date, headline) {
+      const payload = { date, headline };
+
+      const res = await fetch('/predict_single', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text);
+      }
+
+      return await res.json();
+    }
+
+    // ---------- LOAD RECENT FROM DB ----------
+    async function loadRecent(offset = 0) {
+      try {
+        const res = await fetch(`/recent_predictions?limit=${pageSize}&offset=${offset}`);
+        const data = await res.json();
+
+        recentList.innerHTML = "";
+
+        data.results.forEach(r => {
+          const div = document.createElement("div");
+
+          div.className = "p-2 border-b text-sm";
+
+          div.innerHTML = `
+        <div><b>Date:</b> ${escapeHtml(r.date)}</div>
+        <div><b>Headline:</b> ${escapeHtml(r.headline)}</div>
+        <div><b>Price:</b> $${r.predicted_price}</div>
+        <div class="text-xs text-gray-500">${r.created_at}</div>
+      `;
+
+          recentList.appendChild(div);
+        });
+
+        recentContainer.classList.remove("hidden");
+
+      } catch (e) {
+        console.error("Failed to load recent predictions", e);
+      }
+    }
+
+    // ---------- PAGINATION BUTTONS ----------
+    if (nextBtn) {
+      nextBtn.onclick = async () => {
+        currentOffset += pageSize;
+        await loadRecent(currentOffset);
+      };
+    }
+
+    if (prevBtn) {
+      prevBtn.onclick = async () => {
+        currentOffset = Math.max(0, currentOffset - pageSize);
+        await loadRecent(currentOffset);
+      };
+    }
+
+    // ---------- SINGLE PREDICTION ----------
+    if (predictBtn) {
+      predictBtn.onclick = async () => {
+
+        const date = (dateInput || { value: '' }).value.trim();
+        const headline = (headlineInput || { value: '' }).value.trim();
+
+        if (!date || !headline) {
+          alert("Both date and headline are required");
+          return;
+        }
+
+        try {
+          predictBtn.disabled = true;
+          predictBtn.innerText = 'Predicting...';
+
+          const resp = await callPredictAPI(date, headline);
+
+          alert("Predicted Next Day SPY Price: $" + resp.predicted_price);
+
+          // After successful prediction → reload DB history
+          currentOffset = 0;
+          await loadRecent(currentOffset);
+
+        } catch (e) {
+          alert('Prediction error: ' + (e.message || e));
+          console.error(e);
+        } finally {
+          predictBtn.disabled = false;
+          predictBtn.innerText = 'Predict';
+        }
+      };
+    }
+
+    // ---------- BATCH CSV PROCESSING ----------
+    if (runBatch) {
+      runBatch.onclick = async () => {
+
+        const file = csvFile && csvFile.files && csvFile.files[0];
+
+        if (!file) {
+          alert('Please select a CSV file first.');
+          return;
+        }
+
+        resultsBody.innerHTML = '';
+        batchProgress.innerText = 'Parsing CSV...';
+
+        runBatch.disabled = true;
+        runBatch.innerText = 'Processing...';
+
+        Papa.parse(file, {
+          header: true,
+          skipEmptyLines: true,
+
+          complete: async function (results) {
+            const rows = results.data || [];
+
+            batchProgress.innerText = `Processing ${rows.length} rows...`;
+
+            for (let i = 0; i < rows.length; i++) {
+
+              const r = rows[i] || {};
+
+              const date = (r.Time || '').trim();
+              const headline = (r.Headlines || '').trim();
+              const description = (r.Description || '').trim();
+
+              if (!date || !headline) continue;
+
+              try {
+                const combinedText = headline + ". " + description;
+
+                const resp = await callPredictAPI(date, combinedText);
+
+                const tr = document.createElement('tr');
+
+                tr.innerHTML = `
+              <td class="p-2">${i + 1}</td>
+              <td class="p-2">${escapeHtml(headline)}</td>
+              <td class="p-2">${escapeHtml(date)}</td>
+              <td class="p-2">${escapeHtml(description)}</td>
+              <td class="p-2">$${resp.predicted_price}</td>
+            `;
+
+                resultsBody.appendChild(tr);
+
+              } catch (errRow) {
+
+                const tr = document.createElement('tr');
+
+                tr.innerHTML = `
+              <td class="p-2">${i + 1}</td>
+              <td class="p-2" colspan="4">
+                Error: ${escapeHtml(errRow.message || String(errRow))}
+              </td>
+            `;
+
+                resultsBody.appendChild(tr);
+              }
+            }
+
+            batchProgress.innerText = 'Batch processing completed.';
+            runBatch.disabled = false;
+            runBatch.innerText = 'Run Batch';
+          },
+
+          error: function (err) {
+            batchProgress.innerText = 'CSV parse error';
+            runBatch.disabled = false;
+            runBatch.innerText = 'Run Batch';
+
+            alert('CSV parse error: ' + (err.message || err));
+          }
+        });
+      };
+    }
+  </script>
+</body>
+
+</html>
