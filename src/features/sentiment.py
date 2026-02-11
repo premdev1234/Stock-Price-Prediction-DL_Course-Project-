@@ -1,43 +1,42 @@
-import tensorflow as tf
-from transformers import BertTokenizer, TFBertModel
+import torch
 import numpy as np
+from transformers import AutoTokenizer, AutoModel
 
 class FinBERTSentimentAnalyzer:
-    """Financial news sentiment analysis using FinBERT."""
-    
-    def __init__(self, device="/gpu:0"):
-        """
-        Initialize the FinBERT sentiment analyzer.
-        
-        Args:
-            device: Device to run the model on
-        """
-        self.device = device
-        self.tokenizer = BertTokenizer.from_pretrained('yiyanghkust/finbert-tone')
-        with tf.device(self.device):
-            self.model = TFBertModel.from_pretrained('yiyanghkust/finbert-tone')
-            
+    """
+    PyTorch-based FinBERT sentiment extractor.
+    Produces numerical sentiment embeddings per text.
+    """
+
+    def __init__(self, device=None):
+        self.device = device if device else torch.device(
+            "cuda" if torch.cuda.is_available() else "cpu"
+        )
+
+        self.tokenizer = AutoTokenizer.from_pretrained("yiyanghkust/finbert-tone")
+        self.model = AutoModel.from_pretrained("yiyanghkust/finbert-tone").to(self.device)
+        self.model.eval()
+
     def batch_sentiment_analysis(self, text_list, batch_size=32):
-        """
-        Calculate sentiment scores for a list of texts.
-        
-        Args:
-            text_list: List of text strings to analyze
-            batch_size: Batch size for processing
-            
-        Returns:
-            Numpy array of sentiment scores
-        """
-        sentiment_scores = []
-        
-        for i in range(0, len(text_list), batch_size):
-            batch_texts = text_list[i:i+batch_size]
-            inputs = self.tokenizer(batch_texts, return_tensors="tf", truncation=True, padding=True, max_length=512)
-            
-            with tf.device(self.device):
-                outputs = self.model(inputs)
-                batch_scores = tf.reduce_mean(outputs.last_hidden_state[:, 0, :], axis=1).numpy()
-                
-            sentiment_scores.extend(batch_scores)
-            
-        return np.array(sentiment_scores)
+        scores = []
+
+        with torch.no_grad():
+            for i in range(0, len(text_list), batch_size):
+                batch = text_list[i:i+batch_size]
+
+                inputs = self.tokenizer(
+                    batch,
+                    return_tensors="pt",
+                    truncation=True,
+                    padding=True,
+                    max_length=256
+                ).to(self.device)
+
+                outputs = self.model(**inputs)
+
+                cls_embeddings = outputs.last_hidden_state[:, 0, :]
+                batch_scores = cls_embeddings.mean(dim=1).cpu().numpy()
+
+                scores.extend(batch_scores)
+
+        return np.array(scores)
